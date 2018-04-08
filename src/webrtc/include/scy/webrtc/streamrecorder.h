@@ -14,24 +14,22 @@
 
 
 #include "scy/base.h"
-
-#ifdef HAVE_FFMPEG
-
-#include "scy/av/av.h"
-#include "scy/av/multiplexencoder.h"
-
+#include "webrtcelevator.h"
 #include "api/peerconnectioninterface.h"
 
+#include <vector>
+#include <mutex>
 
 namespace scy {
 namespace wrtc {
 
+extern webrtc_elevator_video_frame_callback video_frame_callback;
 
 class StreamRecorder : public rtc::VideoSinkInterface<webrtc::VideoFrame>,
                        public webrtc::AudioTrackSinkInterface
 {
 public:
-    StreamRecorder(const av::EncoderOptions& options);
+    StreamRecorder();
     ~StreamRecorder();
 
     void setVideoTrack(webrtc::VideoTrackInterface* track);
@@ -44,8 +42,11 @@ public:
     void OnData(const void* audio_data, int bits_per_sample, int sample_rate,
                 size_t number_of_channels, size_t number_of_frames) override;
 
+    std::mutex buf_mutex;
+    std::vector<uint8_t> buf_y;
+    std::vector<uint8_t> buf_u;
+    std::vector<uint8_t> buf_v;
 protected:
-    av::MultiplexEncoder _encoder;
     rtc::scoped_refptr<webrtc::VideoTrackInterface> _videoTrack;
     rtc::scoped_refptr<webrtc::AudioTrackInterface> _audioTrack;
     bool _awaitingVideo = false;
@@ -56,8 +57,6 @@ protected:
 
 } } // namespace scy::wrtc
 
-
-#endif // HAVE_FFMPEG
 #endif
 
 

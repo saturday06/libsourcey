@@ -133,19 +133,11 @@ void Signaler::onClientStateChange(void* sender, sockio::ClientState& state, con
 
 void Signaler::onAddRemoteStream(wrtc::Peer* conn, webrtc::MediaStreamInterface* stream)
 {
-    av::EncoderOptions options;
-    options.ofile = OUTPUT_FILENAME;
-    options.oformat = OUTPUT_FORMAT;
-
-    _recorder.reset(new wrtc::StreamRecorder(options));
+    _recorder.reset(new wrtc::StreamRecorder());
 
     auto videoTracks = stream->GetVideoTracks();
     if (!videoTracks.empty())
         _recorder->setVideoTrack(videoTracks[0]);
-
-    auto audioTracks = stream->GetAudioTracks();
-    if (!audioTracks.empty())
-        _recorder->setAudioTrack(audioTracks[0]);
 }
 
 

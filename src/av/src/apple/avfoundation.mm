@@ -4,7 +4,9 @@
 #endif
 
 #include "scy/logger.h"
+#define AVMediaType libavformat_AVMediaType
 #include "scy/av/devicemanager.h"
+#undef AVMediaType
 
 #import <assert.h>
 #import <AVFoundation/AVFoundation.h>

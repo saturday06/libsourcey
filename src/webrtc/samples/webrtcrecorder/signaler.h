@@ -34,6 +34,8 @@ public:
     Signaler(const smpl::Client::Options& options);
     ~Signaler();
 
+    std::unique_ptr<wrtc::StreamRecorder> _recorder;
+
 protected:
 
     /// PeerManager interface
@@ -62,7 +64,6 @@ protected:
 #else
     smpl::TCPClient _client;
 #endif
-    std::unique_ptr<wrtc::StreamRecorder> _recorder;
     wrtc::PeerFactoryContext _context;
 };
 

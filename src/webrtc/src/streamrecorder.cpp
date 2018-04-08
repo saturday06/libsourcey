@@ -9,9 +9,8 @@
 /// @{
 
 
+#include <webrtcelevator.h>
 #include "scy/webrtc/streamrecorder.h"
-
-#ifdef HAVE_FFMPEG
 
 #include "scy/av/ffmpeg.h"
 #include "scy/filesystem.h"
@@ -21,17 +20,13 @@
 #include "media/engine/webrtcvideocapturerfactory.h"
 #include "modules/video_capture/video_capture_factory.h"
 
-
 namespace scy {
 namespace wrtc {
 
+webrtc_elevator_video_frame_callback video_frame_callback = nullptr;
 
-StreamRecorder::StreamRecorder(const av::EncoderOptions& options)
-    : _encoder(options)
+StreamRecorder::StreamRecorder()
 {
-    // Disable audio and video until tracks are set
-    _encoder.options().oformat.video.enabled = false;
-    _encoder.options().oformat.audio.enabled = false;
 }
 
 
@@ -50,7 +45,6 @@ void StreamRecorder::setVideoTrack(webrtc::VideoTrackInterface* track)
     assert(!_videoTrack);
     _videoTrack = track;
     _videoTrack->AddOrUpdateSink(this, rtc::VideoSinkWants());
-    _encoder.options().iformat.video.enabled = true;
     _awaitingVideo = true;
 }
 
@@ -60,51 +54,72 @@ void StreamRecorder::setAudioTrack(webrtc::AudioTrackInterface* track)
     assert(!_audioTrack);
     _audioTrack = track;
     _audioTrack->AddSink(this);
-    _encoder.options().iformat.audio.enabled = true;
     _awaitingAudio = true;
 }
 
 
 void StreamRecorder::OnFrame(const webrtc::VideoFrame& yuvframe)
 {
-    LTrace("On video frame: ", yuvframe.width(), 'x', yuvframe.height())
+    LInfo("On video frame: ", yuvframe.width(), 'x', yuvframe.height())
 
+    if (video_frame_callback) {
+        auto yuv = yuvframe.video_frame_buffer()->GetI420();
+        webrtc_elevator_video_frame frame = {0};
+        frame.width = yuvframe.width();
+        frame.height = yuvframe.height();
+        frame.y = yuv->DataY();
+        frame.u = yuv->DataU();
+        frame.v = yuv->DataV();
+        video_frame_callback(&frame);
+    }
+/*
     // TODO: Recreate encoder context on input stream change
     if (_awaitingVideo) {
         _awaitingVideo = false;
 
-        auto& ivideo = _encoder.options().iformat.video;
         ivideo.width = yuvframe.width();
         ivideo.height = yuvframe.height();
         ivideo.pixelFmt = "yuv420p";
         ivideo.fps = 25;
-
-        if (_shouldInit) {
-            try {
-                _encoder.init();
-                _shouldInit = false;
-            } catch (std::exception& exc) {
-              LError("Failed to init encoder: ", exc.what())
-              _encoder.uninit();
-            }
-        }
     }
 
     if (_encoder.isActive()) {
         // Set AVFrame->data pointers manually so we don't need to copy any data
         // or convert the pixel format from YUV to some contiguous format.
         auto yuvbuffer = yuvframe.video_frame_buffer()->GetI420();
-        auto frame = _encoder.video()->frame;
+        size_t y_len = yuvframe.width() * yuvframe.height();
+        size_t uv_len = ((yuvframe.width() + 1) / 2) * ((yuvframe.height() + 1) / 2);
+
+        {
+            std::lock_guard<std::mutex> lock(this->buf_mutex);
+
+            if (this->buf_y.size() < y_len) {
+                this->buf_y.resize(y_len);
+            }
+            memcpy(&this->buf_y[0], yuvbuffer->DataY(), y_len);
+
+            if (this->buf_u.size() < uv_len) {
+                this->buf_u.resize(uv_len);
+            }
+            memcpy(&this->buf_u[0], yuvbuffer->DataU(), uv_len);
+
+            if (this->buf_v.size() < uv_len) {
+                this->buf_v.resize(uv_len);
+            }
+            memcpy(&this->buf_v[0], yuvbuffer->DataV(), uv_len);
+        }
+*/
+      /*
         frame->data[0] = (uint8_t*)yuvbuffer->DataY();
         frame->data[1] = (uint8_t*)yuvbuffer->DataU();
         frame->data[2] = (uint8_t*)yuvbuffer->DataV();
         frame->width = yuvframe.width();
         frame->height = yuvframe.height();
         frame->pts = AV_NOPTS_VALUE; // set by encoder
-
+      */
         // Encode the video frame
-        _encoder.encodeVideo(frame);
-    }
+        //_encoder.encodeVideo(frame);
+//    }
 }
 
 
@@ -117,7 +132,7 @@ void StreamRecorder::OnData(const void* audio_data, int bits_per_sample,
            << "number_of_channels=" << number_of_channels << ", "
            << "sample_rate=" << sample_rate << ", "
            << "bits_per_sample=" << bits_per_sample << std::endl;
-
+/*
     // FIXME: For some reason the first couple of samples come though as mono,
     // so let's just skip those for now.
     if (number_of_channels < 2) {
@@ -150,7 +165,7 @@ void StreamRecorder::OnData(const void* audio_data, int bits_per_sample,
     }
 
     if (_encoder.isActive())
-        _encoder.encodeAudio((uint8_t*)audio_data, number_of_frames);
+        _encoder.encodeAudio((uint8_t*)audio_data, number_of_frames); */
 }
 
 
@@ -159,5 +174,3 @@ void StreamRecorder::OnData(const void* audio_data, int bits_per_sample,
 
 /// @\}
 
-
-#endif // HAVE_FFMPEG
