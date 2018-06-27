@@ -16,9 +16,9 @@ typedef struct {
     const uint8_t* v;
 } webrtc_elevator_video_frame;
 
-typedef void (*webrtc_elevator_video_frame_callback)(const webrtc_elevator_video_frame* const);
+typedef void (*webrtc_elevator_video_frame_callback)(void* obj, const webrtc_elevator_video_frame* const);
 
-void start_webrtc_elevator(webrtc_elevator_video_frame_callback);
+void start_webrtc_elevator(void* obj, webrtc_elevator_video_frame_callback callback);
 
 #ifdef __cplusplus
 }

@@ -84,10 +84,11 @@ void encoder_loop(Signaler& app) {
 }
 */
 
-void start_webrtc_elevator(webrtc_elevator_video_frame_callback callback)
+void start_webrtc_elevator(void* obj, webrtc_elevator_video_frame_callback callback)
 {
     Logger::instance().add(new ConsoleChannel("debug", Level::Debug)); // LTrace
 
+    wrtc::video_frame_callback_obj = obj;
     wrtc::video_frame_callback = callback;
 
 #if USE_SSL

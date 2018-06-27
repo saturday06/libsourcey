@@ -23,6 +23,7 @@
 namespace scy {
 namespace wrtc {
 
+extern void* video_frame_callback_obj;
 extern webrtc_elevator_video_frame_callback video_frame_callback;
 
 class StreamRecorder : public rtc::VideoSinkInterface<webrtc::VideoFrame>,

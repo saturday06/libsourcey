@@ -23,6 +23,7 @@
 namespace scy {
 namespace wrtc {
 
+void* video_frame_callback_obj = nullptr;
 webrtc_elevator_video_frame_callback video_frame_callback = nullptr;
 
 StreamRecorder::StreamRecorder()
@@ -70,7 +71,7 @@ void StreamRecorder::OnFrame(const webrtc::VideoFrame& yuvframe)
         frame.y = yuv->DataY();
         frame.u = yuv->DataU();
         frame.v = yuv->DataV();
-        video_frame_callback(&frame);
+        video_frame_callback(video_frame_callback_obj, &frame);
     }
 /*
     // TODO: Recreate encoder context on input stream change
