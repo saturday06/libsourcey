@@ -1,3 +1,10 @@
+// import { readFileSync } from 'fs';
+// import * as https from 'https';
+var fs = require('fs');
+var https = require('https');
+var privateKey = fs.readFileSync('/etc/letsencrypt/live/live.leafytree.jp/privkey.pem');
+var certificate = fs.readFileSync('/etc/letsencrypt/live/live.leafytree.jp/fullchain.pem');
+
 //
 /// Setup the Symple server
 
@@ -35,6 +42,11 @@ app.get('/', function (req, res) {
   });
 });
 
-app.listen(app.get('port'), function () {
+const options = {
+    key: privateKey,
+    cert: certificate,
+};
+
+https.createServer(options, app).listen(app.get('port'), function(){
   console.log('Web server listening on port ' + app.get('port'));
 });

@@ -9,7 +9,7 @@
   "anonymous" : true,
 
   /* Session ttl in minutes */
-  "sessionTtl" : 15/*,*/
+  "sessionTtl" : 15,
 
   /* Redis configuration
   "redis" : {
@@ -17,10 +17,10 @@
     "port" : 6379
   }, */
 
-  /* SSL configuration
+  /* SSL configuration */
   "ssl" : {
-    "enabled" : false,
-    "key" : "ssl/symple.key",
-    "cert" : "ssl/symple.crt"
-  } */
+    "enabled" : true,
+    "key" : "/etc/letsencrypt/live/live.leafytree.jp/privkey.pem",
+    "cert" : "/etc/letsencrypt/live/live.leafytree.jp/fullchain.pem"
+  }
 }
