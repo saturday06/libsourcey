@@ -26,9 +26,11 @@ add_library(webrtcelevator STATIC signaler.cpp lib.cpp ${lib_hdrs})
 
 # Include library and header directories
 set_default_project_directories(webrtcrecorder base crypto net http util json socketio symple webrtc)
+set_default_project_directories(webrtcelevator base crypto net http util json socketio symple webrtc)
 
 # Include linker dependencies
 set_default_project_dependencies(webrtcrecorder base crypto net http util json socketio symple webrtc)
+set_default_project_dependencies(webrtcelevator base crypto net http util json socketio symple webrtc)
 
 if(ENABLE_SOLUTION_FOLDERS)
   set_target_properties(webrtcrecorder PROPERTIES FOLDER "samples")
